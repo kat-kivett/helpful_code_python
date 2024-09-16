@@ -40,7 +40,7 @@ for filename in os.listdir(folder_path):
         if filter_by_create_date(file_path):
             sheets = pd.read_excel(file_path, sheet_name=None) # Add sheet name here if needed
             for sheet_name, sheet_data in sheets.items():
-                sheet_df = pd.DaraFrame(sheet_data)
+                sheet_df = pd.DataFrame(sheet_data)
                 create_date = os.path.getctime(file_path)
                 sheet_df['Report Date'] = datetime.fromtimestamp(create_date).strftime("%Ym-%m-%d")
                 combined_data = pd.concat([combined_data, sheet_df], ignore_index = True)
