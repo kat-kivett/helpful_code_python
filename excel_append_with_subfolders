@@ -1,0 +1,56 @@
+# Query to scoop up all files in a folder and/or subfolders, then filter results by a lookback window of days based on file creation.
+
+
+# Import Libraries
+
+import os
+import pandas as pd
+from datetime import datetime, timedelta
+import warnings
+warnings.filterwarnings('ignore')
+
+# Define folder path, lookback window for filtering, and DataFrame(s)
+
+folder_path = "\\folder\path\goes\here\"
+ouput_path = "\\destination\of\combined\file\goes\here"
+
+lookback = 120 # count of days to look back
+
+combined_data = pd.DataFrame()
+
+# Calculate range of dates based on lookback period
+
+end_date = datetime.now() 
+
+start_date = end_date - timedelta(days=lookback)
+
+# Create a function to filter based on Excel workbook create date. Change to '.getmtime' for modified date
+
+def filter_by_create_date(folder_path):
+    creation_date = datetime.fromtimestamp(os.path.getctime(file_path))
+    return start_date <= creation_date <= end_date
+
+
+
+# Loop through Excel files folder and subfolders within timeframe and append data to a single dataframe
+
+for dirpath, dirnames, filenames in os.walk(folder_path):
+    for filename in filenames:
+        if filename.endswith(".xlsx") and "Test" in filename: #for multiple file naming criteria
+            file_path = os.path.join(dirpath, filename)
+            if filter_by_create_date(file_path):
+                sheets = pd.read_excel(file_path, sheet_name=None) # Add sheet name here if needed
+                for sheet_name, sheet_data in sheets.items():
+                    sheet_df = pd.DataFrame(sheet_data)
+                    create_date = os.path.getctime(file_path)
+                    sheet_df['Report Date'] = datetime.fromtimestamp(create_date).strftime("%Ym-%m-%d")
+                    combined_data = pd.concat([combined_data, sheet_df], ignore_index = True)
+                
+# Export report to network folder
+
+combined_data.to_excel(output_path, index=False)
+
+# Optional - open file upon completion. 
+
+#os.startfile(output_path) # uncomment to run
+        
